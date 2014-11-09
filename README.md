@@ -51,6 +51,11 @@ Register the zipfile module with your application by editing 'tiapp.xml' and add
 		var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory,'test.zip');
 		f.write(this.responseData);
 		Ti.API.log('INFO',Ti.Filesystem.applicationDataDirectory);
+
+		zipfile.addEventListener("extract", function(e) {
+			Ti.API.log("onExtract", JSON.stringify(e));
+		});
+
 		zipfile.extract(Ti.Filesystem.applicationDataDirectory+'/test.zip', Ti.Filesystem.applicationDataDirectory);
 	};
 	xhr.open('GET','http://dl.dropbox.com/u/1400234/test.zip');
