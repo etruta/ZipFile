@@ -27,13 +27,19 @@
 
 #pragma mark Lifecycle
 
--(void)startup
+/*-(void)startup
 {
 	// this method is called when the module is first loaded
 	// you *must* call the superclass
 	[super startup];
 	
 	NSLog(@"[INFO] %@ loaded",self);
+}*/
+
+- (id)init
+{
+    self = [super init];
+    return self;
 }
 
 -(void)shutdown:(id)sender
@@ -93,27 +99,47 @@
 
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	
+	BOOL callbackSuccess = YES;
+	NSString *callbackMessage = @"";
+
 	if(![fileManager fileExistsAtPath:file]) {
-		NSLog(@"[DEBUG] Can't find zip file");
-	}
-	
-	ZipArchive *zipArchive = [[ZipArchive alloc] init];
-	if([zipArchive UnzipOpenFile:file]) {
-		NSLog(@"[DEBUG] zip opened");
-		BOOL ret = [zipArchive UnzipFileTo:path overWrite: YES];
-		if (NO == ret){
-			NSLog(@"[DEBUG] failed to unzip");
-		} else {
-			NSLog(@"[DEBUG] file unzipped");
+		callbackSuccess = NO;
+		callbackMessage = @"Can't find zip file";
+	} else {
+
+		ZipArchive *zipArchive = [[ZipArchive alloc] init];
+		if([zipArchive UnzipOpenFile:file]) {
+			NSLog(@"[DEBUG] zip opened");
+			BOOL ret = [zipArchive UnzipFileTo:path overWrite: YES];
+			if (NO == ret){
+				callbackSuccess = NO;
+				callbackMessage = @"failed to unzip";
+			} else {
+				callbackSuccess = NO;
+				callbackMessage = @"file unzipped";
+			}
+			[zipArchive UnzipCloseFile];
+			// removed deletion of zip file after extraction.
+			// Developer can use Ti.FileSystem.deleteFile if they want to do this.
+			//[fileManager removeItemAtPath:file error:NULL];
+		} else  {
+			callbackSuccess = NO;
+			callbackMessage = @"can't open zip";
 		}
-		[zipArchive UnzipCloseFile];
-		// removed deletion of zip file after extraction.
-		// Developer can use Ti.FileSystem.deleteFile if they want to do this.
-		//[fileManager removeItemAtPath:file error:NULL];
-	} else  {
-		NSLog(@"[DEBUG] can't open zip");
+
+		[zipArchive release];	
+
 	}
-	[zipArchive release];	
+
+	if([self _hasListeners:@"extract"]) {
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+  			NUMBOOL(callbackSuccess),@"success",
+				callbackMessage,@"message",
+				nil
+		];
+		[self fireEvent:@"extract" withObject:event];
+	}
+
 }
 
 
