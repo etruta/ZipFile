@@ -99,12 +99,12 @@
 
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	
-	BOOL callbackSuccess = YES;
-	NSString *callbackMessage = @"";
+	BOOL onEtractSuccess = YES;
+	NSString *onEtractMessage = @"";
 
 	if(![fileManager fileExistsAtPath:file]) {
-		callbackSuccess = NO;
-		callbackMessage = @"Can't find zip file";
+		onEtractSuccess = NO;
+		onEtractMessage = @"Can't find zip file";
 	} else {
 
 		ZipArchive *zipArchive = [[ZipArchive alloc] init];
@@ -112,19 +112,19 @@
 			NSLog(@"[DEBUG] zip opened");
 			BOOL ret = [zipArchive UnzipFileTo:path overWrite: YES];
 			if (NO == ret){
-				callbackSuccess = NO;
-				callbackMessage = @"failed to unzip";
+				onEtractSuccess = NO;
+				onEtractMessage = @"failed to unzip";
 			} else {
-				callbackSuccess = NO;
-				callbackMessage = @"file unzipped";
+				onEtractSuccess = NO;
+				onEtractMessage = @"file unzipped";
 			}
 			[zipArchive UnzipCloseFile];
 			// removed deletion of zip file after extraction.
 			// Developer can use Ti.FileSystem.deleteFile if they want to do this.
 			//[fileManager removeItemAtPath:file error:NULL];
 		} else  {
-			callbackSuccess = NO;
-			callbackMessage = @"can't open zip";
+			onEtractSuccess = NO;
+			onEtractMessage = @"can't open zip";
 		}
 
 		[zipArchive release];	
@@ -133,8 +133,8 @@
 
 	if([self _hasListeners:@"extract"]) {
 		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-  			NUMBOOL(callbackSuccess),@"success",
-				callbackMessage,@"message",
+  			NUMBOOL(onEtractSuccess),@"success",
+				onEtractMessage,@"message",
 				nil
 		];
 		[self fireEvent:@"extract" withObject:event];
